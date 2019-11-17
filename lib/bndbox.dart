@@ -51,7 +51,7 @@ class BndBox extends StatelessWidget {
         final isPerson = re["detectedClass"] == 'person';
         final detectedClass = isPerson ? 'Person' : 'Object';
         final color = getColor(re, isPerson);
-        if (color == null || isPerson) {
+        if (color == null || (isPerson && !people)) {
           return null;
         }
 
@@ -82,8 +82,8 @@ class BndBox extends StatelessWidget {
         ..removeWhere((e) => e == null)
         ..addAll([
           Positioned(
-            left: screenW / 3,
-            top: screenH,
+            left: screenW / 4,
+            top: 0,
             width: 2,
             height: screenH,
             child: Container(
@@ -96,8 +96,8 @@ class BndBox extends StatelessWidget {
             ),
           ),
           Positioned(
-            left: screenW * 2 / 3,
-            top: screenH,
+            left: screenW * 3 / 4,
+            top: 0,
             width: 2,
             height: screenH,
             child: Container(
@@ -177,11 +177,12 @@ class BndBox extends StatelessWidget {
       return lists;
     }
 
-    return Stack(
+    final x = Stack(
       children: model == mobilenet
           ? _renderStrings()
           : model == posenet ? _renderKeypoints() : _renderBoxes(),
     );
+    return x;
   }
 
   Color getColor(dynamic result, bool isPerson) {
@@ -198,15 +199,15 @@ class BndBox extends StatelessWidget {
     if (_x < difW / 2) w -= (difW / 2 - _x) * scaleW;
     y = _y * scaleH;
     h = _h * scaleH;
-    final leftWidthBorder = screenW / 3;
-    final rightWidthBorder = screenW * 2 / 3;
+    final leftWidthBorder = screenW / 4;
+    final rightWidthBorder = screenW * 3 / 4;
     final canCollision = (x + w > leftWidthBorder) && (x < rightWidthBorder);
-    if (!canCollision && !borders) return null;
-    final criticalArea = (screenW / 3) * screenH;
+    final criticalArea = (screenW / 2) * screenH;
     final objectArea = w * h;
     bool isBig = objectArea / criticalArea > 0.8;
     if ((x > leftWidthBorder) && (x + w < rightWidthBorder))
-      isBig = objectArea / criticalArea > 0.4;
+      isBig = objectArea / criticalArea > 0.3;
+    if (!canCollision && !borders) return null;
     if (!isPerson && !isBig && close) return null;
     if (isPerson) {
       return canCollision ? Color.fromRGBO(0, 150, 200, 1.0) : Color.fromRGBO(0, 50, 100, 0.5);
